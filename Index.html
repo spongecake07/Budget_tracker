@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FamilyBudget</title>
+<meta name="application-name" content="FamilyBudget">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FamilyBudget">
+<meta name="theme-color" content="#121212">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" id="pwa-manifest">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #121212;
+    --surface: #1e1e1e;
+    --surface2: #2a2a2a;
+    --border: #333333;
+    --accent: #4a9eff;
+    --green: #4caf50;
+    --yellow: #ffc107;
+    --red: #f44336;
+    --text: #ffffff;
+    --text2: #aaaaaa;
+    --text3: #666666;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* SCREENS */
+  .screen { display: none; padding: 16px 16px 90px; }
+  .screen.active { display: block; }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 8px;
+    position: sticky; top: 0;
+    background: var(--bg);
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-title { font-size: 18px; font-weight: 700; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 16px;
+    z-index: 100;
+  }
+
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    cursor: pointer; padding: 4px 0;
+  }
+
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 9px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+  .nav-item.active .nav-label { color: var(--accent); }
+  .nav-item.active .nav-icon { filter: drop-shadow(0 0 4px var(--accent)); }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-size: 11px; font-weight: 600;
+    color: var(--text2); text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 6px;
+  }
+
+  .card-value {
+    font-size: 28px; font-weight: 700;
+  }
+
+  .card-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  .stat-label { font-size: 11px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 20px; font-weight: 700; margin-top: 4px; }
+
+  /* SECTION HEADERS */
+  .section-header {
+    font-size: 12px; font-weight: 700;
+    color: var(--text2); text-transform: uppercase;
+    letter-spacing: 0.8px; margin: 16px 0 8px;
+  }
+
+  /* FORMS */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text2); display: block; margin-bottom: 6px; }
+
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-size: 15px; font-weight: 500;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+  }
+
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-select option { background: var(--surface2); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%; padding: 13px;
+    border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn-sm {
+    padding: 7px 12px; font-size: 12px; font-weight: 600;
+    border: none; border-radius: 6px; cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-blue { background: var(--accent); color: #fff; }
+
+  /* LIST ITEMS */
+  .list-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .list-item-info { flex: 1; }
+  .list-item-name { font-size: 14px; font-weight: 600; }
+  .list-item-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .list-item-amount { font-size: 15px; font-weight: 700; text-align: right; }
+  .list-item-date { font-size: 11px; color: var(--text3); margin-top: 2px; text-align: right; }
+
+  .amount-income { color: var(--green); }
+  .amount-expense { color: var(--red); }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin-top: 8px; }
+  .progress-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .progress-bar { height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+
+  /* TABS */
+  .tabs { display: flex; background: var(--surface2); border-radius: 8px; padding: 3px; margin-bottom: 16px; }
+  .tab { flex: 1; text-align: center; padding: 8px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; color: var(--text2); }
+  .tab.active { background: var(--accent); color: #fff; }
+
+  /* BADGE */
+  .badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 100px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge-blue { background: rgba(74,158,255,0.2); color: var(--accent); }
+  .badge-green { background: rgba(76,175,80,0.2); color: var(--green); }
+  .badge-red { background: rgba(244,67,54,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(255,193,7,0.15); color: var(--yellow); }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 32px 16px; color: var(--text3); }
+  .empty-icon { font-size: 36px; margin-bottom: 8px; }
+  .empty p { font-size: 13px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 200;
+    align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+    padding: 20px 16px 36px;
+    width: 100%; max-width: 430px; margin: 0 auto;
+  }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .modal-close { float: right; cursor: pointer; color: var(--text2); font-size: 20px; line-height: 1; }
+
+  /* CHART */
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 100px; margin-top: 10px; }
+  .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .chart-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent); min-height: 3px; }
+  .chart-bar-label { font-size: 9px; color: var(--text3); font-weight: 600; }
+
+  .donut-container { display: flex; align-items: center; gap: 16px; margin-top: 10px; }
+  .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* SAFE TO SPEND HIGHLIGHT */
+  .safe-card {
+    background: linear-gradient(135deg, #1a2a1a, #1e2e1e);
+    border: 1px solid #2d4a2d;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .safe-label { font-size: 11px; color: #6aaa6a; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+  .safe-amount { font-size: 36px; font-weight: 700; color: var(--green); margin: 6px 0 4px; }
+  .safe-sub { font-size: 12px; color: #6aaa6a; }
+
+  /* DEBT */
+  .debt-owner { font-size: 10px; font-weight: 700; text-transform: uppercase; margin-top: 3px; }
+
+  /* SETTINGS ROW */
+  .settings-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer;
+  }
+  .settings-row:active { opacity: 0.7; }
+  .settings-row-left { font-size: 14px; font-weight: 600; }
+  .settings-row-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .settings-arrow { color: var(--text3); font-size: 18px; }
+
+  /* PWA INSTALL BANNER */
+  .pwa-banner {
+    position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: #1a2a3a;
+    border-bottom: 1px solid #2a4a6a;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+    z-index: 999;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from { transform: translateX(-50%) translateY(-100%); }
+    to { transform: translateX(-50%) translateY(0); }
+  }
+
+  .pwa-banner-icon { font-size: 28px; flex-shrink: 0; }
+  .pwa-banner-text { flex: 1; }
+  .pwa-banner-title { font-size: 13px; font-weight: 700; color: #fff; }
+  .pwa-banner-sub { font-size: 11px; color: #6a9abf; margin-top: 2px; }
+  .pwa-banner-btns { display: flex; gap: 8px; flex-shrink: 0; }
+  .pwa-install-btn {
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 6px;
+    padding: 7px 12px; font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .pwa-dismiss-btn {
+    background: transparent; color: #6a9abf;
+    border: 1px solid #2a4a6a; border-radius: 6px;
+    padding: 7px 10px; font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+
+  .alert-banner {
+    background: rgba(255,193,7,0.12);
+    border: 1px solid rgba(255,193,7,0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--yellow);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .alert-banner.danger {
+    background: rgba(244,67,54,0.12);
+    border-color: rgba(244,67,54,0.3);
+    color: var(--red);
+  }
+</style>
+</head>
+<body>
+
+<!-- PWA INSTALL BANNER -->
+<div class="pwa-banner" id="pwaBanner" style="display:none;">
+  <div class="pwa-banner-icon">💰</div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Install FamilyBudget</div>
+    <div class="pwa-banner-sub">Add to home screen for best experience</div>
+  </div>
+  <div class="pwa-banner-btns">
+    <button class="pwa-install-btn" onclick="installPWA()">Install</button>
+    <button class="pwa-dismiss-btn" onclick="dismissBanner()">✕</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="topbar-title" id="topbarTitle">🏠 Dashboard</span>
+  <span style="font-size:12px;color:var(--text3);" id="topbarDate"></span>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 1: DASHBOARD
+═══════════════════════════════════════════ -->
+<div class="screen active" id="screen-dashboard">
+
+  <div id="dashAlerts"></div>
+
+  <div class="safe-card">
+    <div class="safe-label">Safe to Spend Today</div>
+    <div class="safe-amount" id="safeToSpend">CAD $0.00</div>
+    <div class="safe-sub" id="safeToSpendSub">Based on current pay period</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="stat-card">
+      <div class="stat-label">Balance</div>
+      <div class="stat-value" id="dashBalance">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">This Month</div>
+      <div class="stat-value amount-expense" id="dashMonthSpend">$0</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="stat-card">
+      <div class="stat-label">Today</div>
+      <div class="stat-value amount-expense" id="dashToday">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">This Week</div>
+      <div class="stat-value amount-expense" id="dashWeek">$0</div>
+    </div>
+  </div>
+
+  <div class="section-header">Pay Period</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+      <div>
+        <div style="font-size:12px;color:var(--text2);">Period Income</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green);" id="periodIncome">$0</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;color:var(--text2);">Period Spent</div>
+        <div style="font-size:18px;font-weight:700;color:var(--red);" id="periodSpent">$0</div>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="periodBar" style="width:0%;background:var(--accent)"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:5px;" id="periodDates">No pay period set</div>
+  </div>
+
+  <div class="section-header">Recent Transactions</div>
+  <div id="dashRecent"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 2: INCOME
+═══════════════════════════════════════════ -->
+<div class="screen" id="screen-income">
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">Total Income This Month</div>
+    <div class="card-value amount-income" id="totalIncomeMonth">CAD $0.00</div>
+    <div style="display:flex;gap:20px;margin-top:10px;">
+      <div>
+        <div style="font-size:11px;color:var(--text2);">Your Paychecks</div>
+        <div style="font-size:15px;font-weight:700;color:var(--green);" id="myIncomeMonth">$0</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text2);">Wife's Paychecks</div>
+        <div style="font-size:15px;font-weight:700;color:var(--green);" id="wifeIncomeMonth">$0</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="openModal('incomeModal')">+ Add Paycheck</button>
+
+  <div class="section-header" style="margin-top:16px;">Income History</div>
+  <div id="incomeList"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 3: EXPENSES
+═══════════════════════════════════════════ -->
+<div class="screen" id="screen-expenses">
+
+  <div id="expenseAlerts"></div>
+
+  <button class="btn btn-primary" onclick="openModal('expenseModal')">+ Add Expense</button>
+
+  <div class="section-header" style="margin-top:16px;">This Month's Spending</div>
+  <div id="expenseSummary"></div>
+
+  <div class="section-header">All Transactions</div>
+  <div id="expenseList"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 4: BUDGET LIMITS
+═══════════════════════════════════════════ -->
+<div class="screen" id="screen-budget">
+
+  <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Set your monthly spending limit for each category. You'll be warned at 80% and 100%.</p>
+
+  <div id="budgetLimitList"></div>
+
+  <button class="btn btn-primary" style="margin-top:8px;" onclick="saveBudgetLimits()">Save Limits</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 5: REPORTS
+═══════════════════════════════════════════ -->
+<div class="screen" id="screen-reports">
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchReportTab('daily', this)">Daily</div>
+    <div class="tab" onclick="switchReportTab('weekly', this)">Weekly</div>
+    <div class="tab" onclick="switchReportTab('monthly', this)">Monthly</div>
+  </div>
+
+  <div id="report-daily">
+    <div class="card">
+      <div class="card-title">Last 7 Days — Spending</div>
+      <div class="chart-bars" id="dailyChart"></div>
+    </div>
+    <div class="section-header">Daily Breakdown</div>
+    <div id="dailyList"></div>
+  </div>
+
+  <div id="report-weekly" style="display:none;">
+    <div class="card">
+      <div class="card-title">Last 4 Weeks — Spending</div>
+      <div class="chart-bars" id="weeklyChart"></div>
+    </div>
+    <div class="section-header">Weekly Totals</div>
+    <div id="weeklyList"></div>
+  </div>
+
+  <div id="report-monthly" style="display:none;">
+    <div class="card">
+      <div class="card-title">Spending by Category This Month</div>
+      <div id="monthlyChart"></div>
+    </div>
+    <div class="section-header">Month vs Last Month</div>
+    <div id="monthlyCompare"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 6: DEBT & LOANS
+═══════════════════════════════════════════ -->
+<div class="screen" id="screen-debt">
+
+  <div class="grid-2">
+    <div class="stat-card">
+      <div class="stat-label">Total Debt</div>
+      <div class="stat-value amount-expense" id="totalDebt">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Paid</div>
+      <div class="stat-value amount-income" id="totalPaid">$0</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:0;">
+    <div class="stat-card">
+      <div class="stat-label">Your Debt</div>
+      <div class="stat-value" id="myDebt" style="color:var(--yellow);">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Wife's Debt</div>
+      <div class="stat-value" id="wifeDebt" style="color:var(--yellow);">$0</div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" style="margin-top:4px;" onclick="openModal('debtModal')">+ Add Debt / Loan</button>
+
+  <div class="section-header" style="margin-top:16px;">All Debts & Loans</div>
+  <div id="debtList"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 7: SETTINGS
+═══════════════════════════════════════════ -->
+<div class="screen" id="screen-settings">
+
+  <div class="section-header">App</div>
+
+  <div class="settings-row" onclick="showInstallOption()">
+    <div>
+      <div class="settings-row-left">📲 Install on Home Screen</div>
+      <div class="settings-row-sub">Add FamilyBudget as a real app</div>
+    </div>
+    <span class="settings-arrow">›</span>
+  </div>
+
+  <div class="section-header">Data Management</div>
+
+  <div class="settings-row" onclick="exportData()">
+    <div>
+      <div class="settings-row-left">📤 Export Backup</div>
+      <div class="settings-row-sub">Save all your data as a JSON file</div>
+    </div>
+    <span class="settings-arrow">›</span>
+  </div>
+
+  <div class="settings-row" onclick="document.getElementById('importFile').click()">
+    <div>
+      <div class="settings-row-left">📥 Import Backup</div>
+      <div class="settings-row-sub">Restore from a saved JSON file</div>
+    </div>
+    <span class="settings-arrow">›</span>
+  </div>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+
+  <div class="settings-row" onclick="exportCSV()">
+    <div>
+      <div class="settings-row-left">📊 Export to CSV</div>
+      <div class="settings-row-sub">Open transactions in Excel or Sheets</div>
+    </div>
+    <span class="settings-arrow">›</span>
+  </div>
+
+  <div class="section-header" style="margin-top:8px;">Pay Period</div>
+
+  <div class="card">
+    <div class="form-group">
+      <label class="form-label">Last Pay Date (your most recent payday)</label>
+      <input class="form-input" type="date" id="lastPayDate">
+    </div>
+    <button class="btn btn-primary" onclick="savePayPeriod()">Save Pay Period</button>
+  </div>
+
+  <div class="section-header" style="color:var(--red);">Danger Zone</div>
+
+  <div class="settings-row" onclick="clearAllData()" style="border-color:rgba(244,67,54,0.3);">
+    <div>
+      <div class="settings-row-left" style="color:var(--red);">🗑️ Clear All Data</div>
+      <div class="settings-row-sub">This cannot be undone</div>
+    </div>
+    <span class="settings-arrow">›</span>
+  </div>
+
+  <div style="text-align:center;margin-top:24px;color:var(--text3);font-size:12px;">
+    FamilyBudget v1.0 · CAD Currency
+  </div>
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchScreen('dashboard', this)">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Home</span>
+  </div>
+  <div class="nav-item" onclick="switchScreen('income', this)">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Income</span>
+  </div>
+  <div class="nav-item" onclick="switchScreen('expenses', this)">
+    <span class="nav-icon">💸</span>
+    <span class="nav-label">Expenses</span>
+  </div>
+  <div class="nav-item" onclick="switchScreen('budget', this)">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Budget</span>
+  </div>
+  <div class="nav-item" onclick="switchScreen('reports', this)">
+    <span class="nav-icon">📈</span>
+    <span class="nav-label">Reports</span>
+  </div>
+  <div class="nav-item" onclick="switchScreen('debt', this)">
+    <span class="nav-icon">💳</span>
+    <span class="nav-label">Debt</span>
+  </div>
+  <div class="nav-item" onclick="switchScreen('settings', this)">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Settings</span>
+  </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Income Modal -->
+<div class="modal-overlay" id="incomeModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Paycheck <span class="modal-close" onclick="closeModal('incomeModal')">×</span></div>
+    <div class="form-group">
+      <label class="form-label">Who is this for?</label>
+      <select class="form-select" id="incomeOwner">
+        <option value="me">Me</option>
+        <option value="wife">Wife</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount (CAD)</label>
+      <input class="form-input" type="number" id="incomeAmount" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" type="date" id="incomeDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <input class="form-input" type="text" id="incomeNote" placeholder="e.g. Bi-weekly paycheck">
+    </div>
+    <button class="btn btn-primary" onclick="addIncome()">Add Paycheck</button>
+  </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Expense <span class="modal-close" onclick="closeModal('expenseModal')">×</span></div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="expenseCat">
+        <option value="mortgage">🏠 Mortgage</option>
+        <option value="groceries">🛒 Groceries</option>
+        <option value="baby">👶 Baby Supplies</option>
+        <option value="utilities">💡 Utilities</option>
+        <option value="internet">📱 Internet / Phone</option>
+        <option value="other">📦 Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount (CAD)</label>
+      <input class="form-input" type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" type="date" id="expenseDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <input class="form-input" type="text" id="expenseNote" placeholder="e.g. Walmart groceries">
+    </div>
+    <button class="btn btn-primary" onclick="addExpense()">Add Expense</button>
+  </div>
+</div>
+
+<!-- Debt Modal -->
+<div class="modal-overlay" id="debtModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Debt / Loan <span class="modal-close" onclick="closeModal('debtModal')">×</span></div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" type="text" id="debtName" placeholder="e.g. Car Loan, Credit Card">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Who owes this?</label>
+      <select class="form-select" id="debtOwner">
+        <option value="me">Me</option>
+        <option value="wife">Wife</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Total Amount Owed (CAD)</label>
+      <input class="form-input" type="number" id="debtAmount" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Minimum Monthly Payment (optional)</label>
+      <input class="form-input" type="number" id="debtMinPayment" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <button class="btn btn-primary" onclick="addDebt()">Add Debt</button>
+  </div>
+</div>
+
+<!-- Debt Action Modal -->
+<div class="modal-overlay" id="debtActionModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="debtActionTitle">Update Debt <span class="modal-close" onclick="closeModal('debtActionModal')">×</span></div>
+    <input type="hidden" id="debtActionId">
+    <div class="tabs">
+      <div class="tab active" onclick="switchDebtTab('payment', this)">Make Payment</div>
+      <div class="tab" onclick="switchDebtTab('charge', this)">Add Charge</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="debtActionLabel">Payment Amount (CAD)</label>
+      <input class="form-input" type="number" id="debtActionAmount" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <input class="form-input" type="text" id="debtActionNote" placeholder="e.g. Monthly payment">
+    </div>
+    <button class="btn btn-primary" id="debtActionBtn" onclick="applyDebtAction()">Apply Payment</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════════
+const CATS = {
+  mortgage:  { label: 'Mortgage',       emoji: '🏠' },
+  groceries: { label: 'Groceries',      emoji: '🛒' },
+  baby:      { label: 'Baby Supplies',  emoji: '👶' },
+  utilities: { label: 'Utilities',      emoji: '💡' },
+  internet:  { label: 'Internet/Phone', emoji: '📱' },
+  other:     { label: 'Other',          emoji: '📦' },
+};
+
+const CAT_COLORS = ['#4a9eff','#4caf50','#ff9800','#e91e63','#9c27b0','#aaaaaa'];
+
+function load() {
+  return {
+    income:    JSON.parse(localStorage.getItem('fb_income') || '[]'),
+    expenses:  JSON.parse(localStorage.getItem('fb_expenses') || '[]'),
+    debts:     JSON.parse(localStorage.getItem('fb_debts') || '[]'),
+    limits:    JSON.parse(localStorage.getItem('fb_limits') || '{}'),
+    lastPay:   localStorage.getItem('fb_lastPay') || '',
+  };
+}
+
+function save(data) {
+  localStorage.setItem('fb_income', JSON.stringify(data.income));
+  localStorage.setItem('fb_expenses', JSON.stringify(data.expenses));
+  localStorage.setItem('fb_debts', JSON.stringify(data.debts));
+  localStorage.setItem('fb_limits', JSON.stringify(data.limits));
+  if (data.lastPay !== undefined) localStorage.setItem('fb_lastPay', data.lastPay);
+}
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+const fmt = n => 'CAD $' + Math.abs(n).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtShort = n => '$' + Math.abs(n).toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const today = () => new Date().toISOString().split('T')[0];
+
+function startOfWeek() {
+  const d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function startOfMonth() {
+  const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+function startOfLastMonth() {
+  const d = new Date(); return new Date(d.getFullYear(), d.getMonth() - 1, 1);
+}
+
+function endOfLastMonth() {
+  const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 0, 23,59,59);
+}
+
+function dateStr(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function isThisMonth(iso) {
+  if (!iso) return false;
+  const d = new Date(iso + 'T00:00:00');
+  const n = new Date();
+  return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+}
+
+function isToday(iso) {
+  return iso === today();
+}
+
+function isThisWeek(iso) {
+  if (!iso) return false;
+  const d = new Date(iso + 'T00:00:00');
+  return d >= startOfWeek();
+}
+
+// ═══════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════
+const SCREEN_TITLES = {
+  dashboard: '🏠 Dashboard',
+  income: '💰 Income',
+  expenses: '💸 Expenses',
+  budget: '📊 Budget Limits',
+  reports: '📈 Reports',
+  debt: '💳 Debt & Loans',
+  settings: '⚙️ Settings',
+};
+
+function switchScreen(name, navEl) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  navEl.classList.add('active');
+  document.getElementById('topbarTitle').textContent = SCREEN_TITLES[name];
+  renderAll();
+}
+
+// ═══════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════
+function openModal(id) {
+  // set default dates
+  const dateFields = document.querySelectorAll('#'+id+' input[type="date"]');
+  dateFields.forEach(f => { if (!f.value) f.value = today(); });
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ═══════════════════════════════════════════
+// INCOME
+// ═══════════════════════════════════════════
+function addIncome() {
+  const amount = parseFloat(document.getElementById('incomeAmount').value);
+  if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+  const data = load();
+  data.income.unshift({
+    id: Date.now(),
+    owner: document.getElementById('incomeOwner').value,
+    amount,
+    date: document.getElementById('incomeDate').value || today(),
+    note: document.getElementById('incomeNote').value.trim(),
+  });
+  save(data);
+  document.getElementById('incomeAmount').value = '';
+  document.getElementById('incomeNote').value = '';
+  closeModal('incomeModal');
+  renderAll();
+}
+
+function deleteIncome(id) {
+  if (!confirm('Delete this entry?')) return;
+  const data = load();
+  data.income = data.income.filter(i => i.id !== id);
+  save(data);
+  renderAll();
+}
+
+// ═══════════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════════
+function addExpense() {
+  const amount = parseFloat(document.getElementById('expenseAmount').value);
+  if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+  const data = load();
+  data.expenses.unshift({
+    id: Date.now(),
+    cat: document.getElementById('expenseCat').value,
+    amount,
+    date: document.getElementById('expenseDate').value || today(),
+    note: document.getElementById('expenseNote').value.trim(),
+  });
+  save(data);
+  document.getElementById('expenseAmount').value = '';
+  document.getElementById('expenseNote').value = '';
+  closeModal('expenseModal');
+  renderAll();
+}
+
+function deleteExpense(id) {
+  if (!confirm('Delete this entry?')) return;
+  const data = load();
+  data.expenses = data.expenses.filter(e => e.id !== id);
+  save(data);
+  renderAll();
+}
+
+// ═══════════════════════════════════════════
+// BUDGET LIMITS
+// ═══════════════════════════════════════════
+function renderBudgetLimits() {
+  const data = load();
+  const expenses = data.expenses.filter(e => isThisMonth(e.date));
+
+  document.getElementById('budgetLimitList').innerHTML = Object.entries(CATS).map(([key, cat]) => {
+    const spent = expenses.filter(e => e.cat === key).reduce((s, e) => s + e.amount, 0);
+    const limit = data.limits[key] || 0;
+    const pct = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
+    const color = pct >= 100 ? 'var(--red)' : pct >= 80 ? 'var(--yellow)' : 'var(--accent)';
+    return `
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:15px;font-weight:600;">${cat.emoji} ${cat.label}</div>
+          <div style="font-size:13px;color:var(--text2);">Spent: ${fmtShort(spent)}</div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Monthly Limit (CAD $)</label>
+          <input class="form-input" type="number" id="limit_${key}" value="${limit || ''}" placeholder="No limit set" step="0.01" min="0">
+        </div>
+        ${limit > 0 ? `
+        <div class="progress-wrap">
+          <div class="progress-row"><span>${pct.toFixed(0)}% used</span><span style="color:${color}">${fmtShort(spent)} / ${fmtShort(limit)}</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        </div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function saveBudgetLimits() {
+  const data = load();
+  Object.keys(CATS).forEach(key => {
+    const val = parseFloat(document.getElementById('limit_' + key).value);
+    if (val > 0) data.limits[key] = val;
+    else delete data.limits[key];
+  });
+  save(data);
+  alert('Budget limits saved!');
+  renderAll();
+}
+
+// ═══════════════════════════════════════════
+// DEBT
+// ═══════════════════════════════════════════
+let debtActionType = 'payment';
+
+function addDebt() {
+  const name = document.getElementById('debtName').value.trim();
+  const amount = parseFloat(document.getElementById('debtAmount').value);
+  if (!name) { alert('Please enter a name.'); return; }
+  if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+  const data = load();
+  const minPay = parseFloat(document.getElementById('debtMinPayment').value) || 0;
+  data.debts.push({
+    id: Date.now(),
+    name,
+    owner: document.getElementById('debtOwner').value,
+    original: amount,
+    balance: amount,
+    minPayment: minPay,
+    history: [],
+  });
+  save(data);
+  document.getElementById('debtName').value = '';
+  document.getElementById('debtAmount').value = '';
+  document.getElementById('debtMinPayment').value = '';
+  closeModal('debtModal');
+  renderAll();
+}
+
+function openDebtAction(id) {
+  const data = load();
+  const debt = data.debts.find(d => d.id === id);
+  if (!debt) return;
+  document.getElementById('debtActionId').value = id;
+  document.getElementById('debtActionTitle').innerHTML = `${debt.name} <span class="modal-close" onclick="closeModal('debtActionModal')">×</span>`;
+  document.getElementById('debtActionAmount').value = '';
+  document.getElementById('debtActionNote').value = '';
+  debtActionType = 'payment';
+  document.querySelectorAll('#debtActionModal .tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.getElementById('debtActionLabel').textContent = 'Payment Amount (CAD)';
+  document.getElementById('debtActionBtn').textContent = 'Apply Payment';
+  openModal('debtActionModal');
+}
+
+function switchDebtTab(type, el) {
+  debtActionType = type;
+  document.querySelectorAll('#debtActionModal .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (type === 'payment') {
+    document.getElementById('debtActionLabel').textContent = 'Payment Amount (CAD)';
+    document.getElementById('debtActionBtn').textContent = 'Apply Payment';
+  } else {
+    document.getElementById('debtActionLabel').textContent = 'Charge / Interest Amount (CAD)';
+    document.getElementById('debtActionBtn').textContent = 'Add Charge';
+  }
+}
+
+function applyDebtAction() {
+  const id = parseInt(document.getElementById('debtActionId').value);
+  const amount = parseFloat(document.getElementById('debtActionAmount').value);
+  const note = document.getElementById('debtActionNote').value.trim();
+  if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+  const data = load();
+  const debt = data.debts.find(d => d.id === id);
+  if (!debt) return;
+  if (debtActionType === 'payment') {
+    debt.balance = Math.max(0, debt.balance - amount);
+    debt.history.push({ type: 'payment', amount, note, date: today() });
+  } else {
+    debt.balance += amount;
+    debt.history.push({ type: 'charge', amount, note, date: today() });
+  }
+  save(data);
+  closeModal('debtActionModal');
+  renderAll();
+}
+
+function deleteDebt(id) {
+  if (!confirm('Delete this debt?')) return;
+  const data = load();
+  data.debts = data.debts.filter(d => d.id !== id);
+  save(data);
+  renderAll();
+}
+
+// ═══════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════
+function savePayPeriod() {
+  const val = document.getElementById('lastPayDate').value;
+  if (!val) { alert('Please select a date.'); return; }
+  localStorage.setItem('fb_lastPay', val);
+  alert('Pay period saved!');
+  renderAll();
+}
+
+function exportData() {
+  const data = load();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'familybudget-backup.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!confirm('This will replace all your current data. Continue?')) return;
+      save(data);
+      alert('Data restored successfully!');
+      renderAll();
+    } catch { alert('Invalid backup file.'); }
+  };
+  reader.readAsText(file);
+}
+
+function exportCSV() {
+  const data = load();
+  let csv = 'Type,Date,Category/Owner,Amount,Note\n';
+  data.income.forEach(i => {
+    csv += `Income,${i.date},${i.owner === 'me' ? 'Me' : 'Wife'},${i.amount},"${i.note || ''}"\n`;
+  });
+  data.expenses.forEach(e => {
+    csv += `Expense,${e.date},${CATS[e.cat]?.label || e.cat},${e.amount},"${e.note || ''}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'familybudget.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearAllData() {
+  if (!confirm('Are you sure? This will delete ALL your data permanently.')) return;
+  if (!confirm('Last chance — really delete everything?')) return;
+  localStorage.removeItem('fb_income');
+  localStorage.removeItem('fb_expenses');
+  localStorage.removeItem('fb_debts');
+  localStorage.removeItem('fb_limits');
+  localStorage.removeItem('fb_lastPay');
+  alert('All data cleared.');
+  renderAll();
+}
+
+// ═══════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════
+let currentReportTab = 'daily';
+
+function switchReportTab(tab, el) {
+  currentReportTab = tab;
+  ['daily','weekly','monthly'].forEach(t => {
+    document.getElementById('report-' + t).style.display = t === tab ? '' : 'none';
+  });
+  document.querySelectorAll('#screen-reports .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderReports();
+}
+
+function renderReports() {
+  const data = load();
+  const expenses = data.expenses;
+
+  if (currentReportTab === 'daily') {
+    // Last 7 days
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const iso = d.toISOString().split('T')[0];
+      const label = d.toLocaleDateString('en-CA', { weekday: 'short' });
+      const total = expenses.filter(e => e.date === iso).reduce((s, e) => s + e.amount, 0);
+      days.push({ iso, label, total });
+    }
+    const maxVal = Math.max(...days.map(d => d.total), 1);
+    document.getElementById('dailyChart').innerHTML = days.map(d => {
+      const h = Math.round((d.total / maxVal) * 90);
+      return `<div class="chart-col">
+        <div class="chart-bar" style="height:${h}px"></div>
+        <div class="chart-bar-label">${d.label}</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('dailyList').innerHTML = days.filter(d => d.total > 0).reverse().map(d => `
+      <div class="list-item">
+        <div class="list-item-info">
+          <div class="list-item-name">${dateStr(d.iso)}</div>
+          <div class="list-item-sub">${expenses.filter(e => e.date === d.iso).length} transactions</div>
+        </div>
+        <div class="list-item-amount amount-expense">${fmt(d.total)}</div>
+      </div>`).join('') || '<div class="empty"><div class="empty-icon">📭</div><p>No spending data</p></div>';
+  }
+
+  if (currentReportTab === 'weekly') {
+    const weeks = [];
+    for (let i = 3; i >= 0; i--) {
+      const start = new Date(); start.setDate(start.getDate() - start.getDay() - (i * 7)); start.setHours(0,0,0,0);
+      const end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23,59,59);
+      const label = 'W' + (4 - i);
+      const total = expenses.filter(e => {
+        const d = new Date(e.date + 'T00:00:00');
+        return d >= start && d <= end;
+      }).reduce((s, e) => s + e.amount, 0);
+      weeks.push({ start, end, label, total });
+    }
+    const maxVal = Math.max(...weeks.map(w => w.total), 1);
+    document.getElementById('weeklyChart').innerHTML = weeks.map(w => {
+      const h = Math.round((w.total / maxVal) * 90);
+      return `<div class="chart-col">
+        <div class="chart-bar" style="height:${h}px"></div>
+        <div class="chart-bar-label">${w.label}</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('weeklyList').innerHTML = weeks.map(w => `
+      <div class="list-item">
+        <div class="list-item-info">
+          <div class="list-item-name">${w.start.toLocaleDateString('en-CA',{month:'short',day:'numeric'})} – ${w.end.toLocaleDateString('en-CA',{month:'short',day:'numeric'})}</div>
+        </div>
+        <div class="list-item-amount amount-expense">${fmt(w.total)}</div>
+      </div>`).join('');
+  }
+
+  if (currentReportTab === 'monthly') {
+    const thisMonthExp = expenses.filter(e => isThisMonth(e.date));
+    const lastMonthExp = expenses.filter(e => {
+      const d = new Date(e.date + 'T00:00:00');
+      return d >= startOfLastMonth() && d <= endOfLastMonth();
+    });
+
+    const catTotals = Object.entries(CATS).map(([key, cat], idx) => ({
+      key, cat, idx,
+      thisMonth: thisMonthExp.filter(e => e.cat === key).reduce((s, e) => s + e.amount, 0),
+      lastMonth: lastMonthExp.filter(e => e.cat === key).reduce((s, e) => s + e.amount, 0),
+    })).filter(c => c.thisMonth > 0 || c.lastMonth > 0);
+
+    const totalThis = thisMonthExp.reduce((s, e) => s + e.amount, 0);
+
+    // Simple category list as "donut"
+    document.getElementById('monthlyChart').innerHTML = `
+      <div style="margin-top:10px;">
+        ${catTotals.map((c, i) => {
+          const pct = totalThis > 0 ? (c.thisMonth / totalThis * 100).toFixed(0) : 0;
+          return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:${CAT_COLORS[c.idx % CAT_COLORS.length]};flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                <span>${c.cat.emoji} ${c.cat.label}</span>
+                <span style="font-weight:700;">${fmt(c.thisMonth)} <span style="color:var(--text3);font-weight:400;">(${pct}%)</span></span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${CAT_COLORS[c.idx % CAT_COLORS.length]}"></div></div>
+            </div>
+          </div>`;
+        }).join('') || '<p style="color:var(--text3);font-size:13px;">No data this month</p>'}
+        <hr class="divider">
+        <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;">
+          <span>Total</span><span>${fmt(totalThis)}</span>
+        </div>
+      </div>`;
+
+    const totalLast = lastMonthExp.reduce((s, e) => s + e.amount, 0);
+    const diff = totalThis - totalLast;
+    const diffColor = diff > 0 ? 'var(--red)' : 'var(--green)';
+    const diffSign = diff > 0 ? '+' : '';
+    document.getElementById('monthlyCompare').innerHTML = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:12px;color:var(--text2);">This Month</div>
+            <div style="font-size:18px;font-weight:700;">${fmt(totalThis)}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:11px;color:var(--text2);">vs Last Month</div>
+            <div style="font-size:16px;font-weight:700;color:${diffColor}">${diffSign}${fmt(Math.abs(diff))}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;color:var(--text2);">Last Month</div>
+            <div style="font-size:18px;font-weight:700;">${fmt(totalLast)}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════
+function renderAll() {
+  const data = load();
+  renderDashboard(data);
+  renderIncome(data);
+  renderExpenses(data);
+  renderBudgetLimits();
+  renderReports();
+  renderDebt(data);
+  renderSettings(data);
+}
+
+function renderDashboard(data) {
+  const todayISO = today();
+  const expenses = data.expenses;
+  const income = data.income;
+
+  const totalIncome = income.reduce((s, i) => s + i.amount, 0);
+  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  const balance = totalIncome - totalExpenses;
+
+  const todaySpend = expenses.filter(e => isToday(e.date)).reduce((s, e) => s + e.amount, 0);
+  const weekSpend = expenses.filter(e => isThisWeek(e.date)).reduce((s, e) => s + e.amount, 0);
+  const monthSpend = expenses.filter(e => isThisMonth(e.date)).reduce((s, e) => s + e.amount, 0);
+
+  document.getElementById('dashBalance').textContent = fmtShort(balance);
+  document.getElementById('dashToday').textContent = fmtShort(todaySpend);
+  document.getElementById('dashWeek').textContent = fmtShort(weekSpend);
+  document.getElementById('dashMonthSpend').textContent = fmtShort(monthSpend);
+
+  // Pay period
+  const lastPay = data.lastPay;
+  let safeAmount = 0;
+  let periodIncomeAmt = 0;
+  let periodSpentAmt = 0;
+  let daysLeft = 0;
+
+  if (lastPay) {
+    const payStart = new Date(lastPay + 'T00:00:00');
+    const payEnd = new Date(payStart); payEnd.setDate(payStart.getDate() + 13);
+    const now = new Date();
+
+    const periodIncome = income.filter(i => {
+      const d = new Date(i.date + 'T00:00:00');
+      return d >= payStart && d <= payEnd;
+    }).reduce((s, i) => s + i.amount, 0);
+
+    const periodSpent = expenses.filter(e => {
+      const d = new Date(e.date + 'T00:00:00');
+      return d >= payStart && d <= payEnd;
+    }).reduce((s, e) => s + e.amount, 0);
+
+    periodIncomeAmt = periodIncome;
+    periodSpentAmt = periodSpent;
+
+    const remaining = periodIncome - periodSpent;
+    daysLeft = Math.max(1, Math.ceil((payEnd - now) / 86400000));
+    safeAmount = remaining > 0 ? remaining / daysLeft : 0;
+
+    const pct = periodIncome > 0 ? Math.min((periodSpent / periodIncome) * 100, 100) : 0;
+    document.getElementById('periodBar').style.width = pct + '%';
+    document.getElementById('periodDates').textContent =
+      `${payStart.toLocaleDateString('en-CA',{month:'short',day:'numeric'})} – ${payEnd.toLocaleDateString('en-CA',{month:'short',day:'numeric'})} · ${daysLeft} days left`;
+  }
+
+  document.getElementById('safeToSpend').textContent = fmt(safeAmount);
+  document.getElementById('safeToSpendSub').textContent = lastPay
+    ? `${daysLeft} days left in pay period`
+    : 'Set pay date in Settings';
+  document.getElementById('periodIncome').textContent = fmtShort(periodIncomeAmt);
+  document.getElementById('periodSpent').textContent = fmtShort(periodSpentAmt);
+
+  // Alerts
+  const alerts = [];
+  const limits = data.limits;
+  const monthExp = expenses.filter(e => isThisMonth(e.date));
+  Object.entries(limits).forEach(([key, limit]) => {
+    const spent = monthExp.filter(e => e.cat === key).reduce((s, e) => s + e.amount, 0);
+    const pct = (spent / limit) * 100;
+    if (pct >= 100) alerts.push({ msg: `${CATS[key]?.emoji} ${CATS[key]?.label} budget exceeded! (${fmt(spent)} / ${fmt(limit)})`, danger: true });
+    else if (pct >= 80) alerts.push({ msg: `${CATS[key]?.emoji} ${CATS[key]?.label} at ${pct.toFixed(0)}% of budget`, danger: false });
+  });
+
+  document.getElementById('dashAlerts').innerHTML = alerts.map(a =>
+    `<div class="alert-banner ${a.danger ? 'danger' : ''}">${a.msg}</div>`
+  ).join('');
+
+  // Recent transactions (combined)
+  const allTxns = [
+    ...income.map(i => ({ ...i, _type: 'income', _label: i.owner === 'me' ? 'My Paycheck' : "Wife's Paycheck", _emoji: '💰' })),
+    ...expenses.map(e => ({ ...e, _type: 'expense', _label: CATS[e.cat]?.label || e.cat, _emoji: CATS[e.cat]?.emoji || '📦' })),
+  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
+
+  document.getElementById('dashRecent').innerHTML = allTxns.length ? allTxns.map(t => `
+    <div class="list-item">
+      <span style="font-size:22px;">${t._emoji}</span>
+      <div class="list-item-info">
+        <div class="list-item-name">${t.note || t._label}</div>
+        <div class="list-item-sub">${t._label} · ${dateStr(t.date)}</div>
+      </div>
+      <div>
+        <div class="list-item-amount ${t._type === 'income' ? 'amount-income' : 'amount-expense'}">
+          ${t._type === 'income' ? '+' : '-'}${fmtShort(t.amount)}
+        </div>
+      </div>
+    </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">📭</div><p>No transactions yet</p></div>';
+}
+
+function renderIncome(data) {
+  const myTotal = data.income.filter(i => i.owner === 'me' && isThisMonth(i.date)).reduce((s, i) => s + i.amount, 0);
+  const wifeTotal = data.income.filter(i => i.owner === 'wife' && isThisMonth(i.date)).reduce((s, i) => s + i.amount, 0);
+  document.getElementById('totalIncomeMonth').textContent = fmt(myTotal + wifeTotal);
+  document.getElementById('myIncomeMonth').textContent = fmtShort(myTotal);
+  document.getElementById('wifeIncomeMonth').textContent = fmtShort(wifeTotal);
+
+  document.getElementById('incomeList').innerHTML = data.income.length ? data.income.map(i => `
+    <div class="list-item">
+      <span style="font-size:22px;">💰</span>
+      <div class="list-item-info">
+        <div class="list-item-name">${i.note || (i.owner === 'me' ? 'My Paycheck' : "Wife's Paycheck")}</div>
+        <div class="list-item-sub">
+          <span class="badge ${i.owner === 'me' ? 'badge-blue' : 'badge-green'}">${i.owner === 'me' ? 'Me' : 'Wife'}</span>
+          &nbsp;${dateStr(i.date)}
+        </div>
+      </div>
+      <div>
+        <div class="list-item-amount amount-income">+${fmtShort(i.amount)}</div>
+        <button class="btn-sm btn-red" style="margin-top:4px;" onclick="deleteIncome(${i.id})">Delete</button>
+      </div>
+    </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">💸</div><p>No income entries yet</p></div>';
+}
+
+function renderExpenses(data) {
+  const monthExp = data.expenses.filter(e => isThisMonth(e.date));
+  const limits = data.limits;
+
+  // Alerts
+  const alerts = [];
+  Object.entries(limits).forEach(([key, limit]) => {
+    const spent = monthExp.filter(e => e.cat === key).reduce((s, e) => s + e.amount, 0);
+    const pct = (spent / limit) * 100;
+    if (pct >= 100) alerts.push({ msg: `${CATS[key]?.emoji} ${CATS[key]?.label} budget exceeded!`, danger: true });
+    else if (pct >= 80) alerts.push({ msg: `${CATS[key]?.emoji} ${CATS[key]?.label} is at ${pct.toFixed(0)}% of budget`, danger: false });
+  });
+  document.getElementById('expenseAlerts').innerHTML = alerts.map(a =>
+    `<div class="alert-banner ${a.danger ? 'danger' : ''}">${a.msg}</div>`
+  ).join('');
+
+  // Category summary
+  document.getElementById('expenseSummary').innerHTML = Object.entries(CATS).map(([key, cat]) => {
+    const spent = monthExp.filter(e => e.cat === key).reduce((s, e) => s + e.amount, 0);
+    if (spent === 0) return '';
+    const limit = limits[key] || 0;
+    const pct = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
+    const color = pct >= 100 ? 'var(--red)' : pct >= 80 ? 'var(--yellow)' : 'var(--accent)';
+    return `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:14px;font-weight:600;">${cat.emoji} ${cat.label}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--red);">${fmt(spent)}</div>
+        </div>
+        ${limit > 0 ? `
+        <div class="progress-wrap">
+          <div class="progress-row"><span style="color:${color}">${pct.toFixed(0)}% of ${fmtShort(limit)} limit</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        </div>` : ''}
+      </div>`;
+  }).join('') || '<div class="empty"><div class="empty-icon">✅</div><p>No expenses this month</p></div>';
+
+  // Full list
+  document.getElementById('expenseList').innerHTML = data.expenses.length ? data.expenses.map(e => `
+    <div class="list-item">
+      <span style="font-size:22px;">${CATS[e.cat]?.emoji || '📦'}</span>
+      <div class="list-item-info">
+        <div class="list-item-name">${e.note || CATS[e.cat]?.label || e.cat}</div>
+        <div class="list-item-sub">${CATS[e.cat]?.label || e.cat} · ${dateStr(e.date)}</div>
+      </div>
+      <div>
+        <div class="list-item-amount amount-expense">-${fmtShort(e.amount)}</div>
+        <button class="btn-sm btn-red" style="margin-top:4px;" onclick="deleteExpense(${e.id})">Delete</button>
+      </div>
+    </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">📭</div><p>No expenses yet</p></div>';
+}
+
+function renderDebt(data) {
+  const myDebt = data.debts.filter(d => d.owner === 'me').reduce((s, d) => s + d.balance, 0);
+  const wifeDebt = data.debts.filter(d => d.owner === 'wife').reduce((s, d) => s + d.balance, 0);
+  const totalPaid = data.debts.reduce((s, d) => s + (d.original - d.balance), 0);
+
+  document.getElementById('totalDebt').textContent = fmtShort(myDebt + wifeDebt);
+  document.getElementById('totalPaid').textContent = fmtShort(totalPaid);
+  document.getElementById('myDebt').textContent = fmtShort(myDebt);
+  document.getElementById('wifeDebt').textContent = fmtShort(wifeDebt);
+
+  document.getElementById('debtList').innerHTML = data.debts.length ? data.debts.map(d => {
+    const paidPct = d.original > 0 ? Math.min(((d.original - d.balance) / d.original) * 100, 100) : 0;
+    return `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;">${d.name}</div>
+            <div class="debt-owner">
+              <span class="badge ${d.owner === 'me' ? 'badge-blue' : 'badge-green'}">${d.owner === 'me' ? 'Me' : 'Wife'}</span>
+              ${d.minPayment > 0 ? `<span style="margin-left:6px;font-size:11px;color:var(--text2);">Min: ${fmtShort(d.minPayment)}/mo</span>` : ''}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:16px;font-weight:700;color:var(--red);">${fmt(d.balance)}</div>
+            <div style="font-size:11px;color:var(--text2);">of ${fmt(d.original)}</div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-row"><span style="color:var(--green)">${paidPct.toFixed(0)}% paid off</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${paidPct}%;background:var(--green)"></div></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn-sm btn-green" style="flex:1;" onclick="openDebtAction(${d.id})">Update</button>
+          <button class="btn-sm btn-red" onclick="deleteDebt(${d.id})">Delete</button>
+        </div>
+      </div>`;
+  }).join('')
+    : '<div class="empty"><div class="empty-icon">🎉</div><p>No debts added yet</p></div>';
+}
+
+function renderSettings(data) {
+  if (data.lastPay) {
+    document.getElementById('lastPayDate').value = data.lastPay;
+  }
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+renderAll();
+</script>
+<script>
+// ═══════════════════════════════════════════
+// PWA — MANIFEST (injected inline)
+// ═══════════════════════════════════════════
+const manifest = {
+  name: "FamilyBudget",
+  short_name: "FamilyBudget",
+  description: "Family budget tracker — CAD",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#121212",
+  theme_color: "#121212",
+  orientation: "portrait",
+  icons: [
+    {
+      src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23121212'/><text y='.9em' font-size='80' x='10'>💰</text></svg>",
+      sizes: "192x192",
+      type: "image/svg+xml",
+      purpose: "any maskable"
+    }
+  ]
+};
+
+const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+const manifestURL = URL.createObjectURL(manifestBlob);
+document.getElementById('pwa-manifest').setAttribute('href', manifestURL);
+
+// ═══════════════════════════════════════════
+// PWA — SERVICE WORKER (injected inline)
+// ═══════════════════════════════════════════
+const swCode = `
+const CACHE = 'familybudget-v1';
+
+self.addEventListener('install', e => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => cached))
+  );
+});
+`;
+
+if ('serviceWorker' in navigator) {
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL, { scope: './' })
+    .then(() => console.log('FamilyBudget SW registered'))
+    .catch(e => console.log('SW registration failed:', e));
+}
+
+// ═══════════════════════════════════════════
+// PWA — INSTALL PROMPT
+// ═══════════════════════════════════════════
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Only show if not already installed and not dismissed
+  if (!localStorage.getItem('fb_pwa_dismissed')) {
+    document.getElementById('pwaBanner').style.display = 'flex';
+    // Push content down so banner doesn't cover topbar
+    document.querySelector('.topbar').style.marginTop = '64px';
+  }
+});
+
+function installPWA() {
+  if (!deferredPrompt) {
+    // Fallback instructions for browsers that don't support prompt
+    alert('To install:\n1. Tap the 3-dot menu (⋮) in Chrome\n2. Tap "Add to Home screen"\n3. Tap "Add"');
+    return;
+  }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(result => {
+    if (result.outcome === 'accepted') {
+      dismissBanner();
+    }
+    deferredPrompt = null;
+  });
+}
+
+function dismissBanner() {
+  document.getElementById('pwaBanner').style.display = 'none';
+  document.querySelector('.topbar').style.marginTop = '';
+  localStorage.setItem('fb_pwa_dismissed', '1');
+}
+
+// If already installed as PWA, hide banner
+window.addEventListener('appinstalled', () => {
+  dismissBanner();
+  console.log('FamilyBudget installed as PWA');
+});
+
+// ═══════════════════════════════════════════
+// SETTINGS PAGE — show PWA install option
+// ═══════════════════════════════════════════
+function showInstallOption() {
+  if (deferredPrompt) {
+    installPWA();
+  } else {
+    alert('To install on Android:\n\n1. Open this file in Chrome\n2. Tap the 3-dot menu (⋮) at top right\n3. Tap "Add to Home screen"\n4. Tap "Add"\n\nThe app will appear on your home screen like a normal app!');
+  }
+}
+</script>
+</body>
+</html>
